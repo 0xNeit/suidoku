@@ -4,7 +4,6 @@ module suidoku::suidoku {
     use sui::object::{Self, ID, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
-    use sui::package::{Self, Publisher};
     use sui::table::{Self, Table};
 
     use suidoku::pseudorandom::{Self, Counter};
@@ -41,11 +40,6 @@ module suidoku::suidoku {
         players: Table<address, ID>
     }
 
-    struct GamesInfo has key {
-        id: UID,
-        games_addr: Publisher,
-    }
-
     struct Player has key {
         id: UID,
         current_game_id: u64,
@@ -53,15 +47,7 @@ module suidoku::suidoku {
         completed: u64,
     }
 
-    struct SUIDOKU has drop {}
-
-    fun init(witness: SUIDOKU, ctx: &mut TxContext) {
-        transfer::share_object(
-            GamesInfo {
-                id: object::new(ctx),
-                games_addr: package::claim(witness, ctx)
-            }
-        );
+    fun init(ctx: &mut TxContext) {
         transfer::share_object(
             GamesHolder {
                 id: object::new(ctx),
@@ -326,10 +312,9 @@ module suidoku::suidoku {
     #[test_only]
     fun setup(
         holder: &mut GamesHolder,
-        witness: SUIDOKU,
         ctx: &mut TxContext
     ): vector<vector<u8>> {
-        init(witness, ctx);
+        init(ctx);
 
         let board: vector<vector<u8>> = vector<vector<u8>>[
             vector<u8>[0, 0, 0, 0, 0, 0, 2, 0, 0],
